@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Model weights are large binaries fetched separately (see scripts/download_model.py)
+# and should not be committed to git.
+models/*.gguf
+models/*.bin
+
+.DS_Store
