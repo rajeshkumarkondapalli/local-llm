@@ -157,6 +157,134 @@ python3 agent.py <folder> <prompt> [options]
   -v, --verbose              Verbose llama.cpp logging
 ```
 
+## Example walkthrough
+
+An end-to-end run on a Mac, from clone to a fully offline query. Output
+shown is representative of what each tool actually prints, not a captured
+transcript -- exact byte counts, hashes, and timings will differ for you.
+
+**1. Clone and enter the repo**
+
+```bash
+$ git clone https://github.com/rajeshkumarkondapalli/local-llm.git
+$ cd local-llm
+```
+```
+Cloning into 'local-llm'...
+remote: Enumerating objects: 24, done.
+remote: Counting objects: 100% (24/24), done.
+remote: Compressing objects: 100% (18/18), done.
+remote: Total 24 (delta 4), reused 24 (delta 4), pack-reused 0
+Receiving objects: 100% (24/24), 12.40 KiB | 12.40 MiB/s, done.
+Resolving deltas: 100% (4/4), done.
+```
+
+**2. Set up the Python environment**
+
+```bash
+$ python3 -m venv .venv
+$ source .venv/bin/activate
+$ pip install -r requirements.txt
+```
+```
+Collecting llama-cpp-python>=0.3.0
+  Downloading llama_cpp_python-0.3.35-cp312-cp312-macosx_14_0_arm64.whl (3.1 MB)
+Collecting typing-extensions>=4.5.0 (from llama-cpp-python>=0.3.0)
+  Downloading typing_extensions-4.13.0-py3-none-any.whl (37 kB)
+Collecting numpy>=1.20.0 (from llama-cpp-python>=0.3.0)
+  Downloading numpy-2.2.4-cp312-cp312-macosx_14_0_arm64.whl (5.4 MB)
+Collecting diskcache>=5.6.1 (from llama-cpp-python>=0.3.0)
+  Downloading diskcache-5.6.3-py3-none-any.whl (45 kB)
+Collecting jinja2>=2.11.3 (from llama-cpp-python>=0.3.0)
+  Downloading jinja2-3.1.5-py3-none-any.whl (134 kB)
+Installing collected packages: typing-extensions, numpy, MarkupSafe, jinja2, diskcache, llama-cpp-python
+Successfully installed diskcache-5.6.3 jinja2-3.1.5 llama-cpp-python-0.3.35 numpy-2.2.4 typing-extensions-4.13.0
+```
+
+The `macosx_14_0_arm64` wheel is the important part -- that's the prebuilt
+Metal-enabled binary for Apple Silicon; no compiling needed.
+
+**3. Download the model (one time, needs internet)**
+
+```bash
+$ pip install -r requirements-dev.txt
+$ python3 scripts/download_model.py
+```
+```
+Downloading smollm2-135m-instruct-q4_k_m.gguf from HuggingFaceTB/SmolLM2-135M-Instruct-GGUF ...
+smollm2-135m-instruct-q4_k_m.gguf: 100%|████████████████████████| 91.2M/91.2M [00:04<00:00, 21.3MB/s]
+Model ready at /Users/rajesh/local-llm/models/model.gguf (91.2 MB)
+
+This file is under GitHub's 100MB limit, so you can commit it directly to vendor the model into the repo:
+  git add models/model.gguf
+  git commit -m "Vendor local model weights"
+  git push
+```
+
+**4. Vendor it into the repo (run the printed commands)**
+
+```bash
+$ git add models/model.gguf
+$ git commit -m "Vendor local model weights"
+$ git push
+```
+```
+[claude/offline-local-lm-python-cdhy6p a1b2c3d] Vendor local model weights
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 models/model.gguf
+Enumerating objects: 5, done.
+Counting objects: 100% (5/5), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (4/4), 91.18 MiB | 8.42 MiB/s, done.
+Total 4 (delta 1), reused 0 (delta 0)
+To https://github.com/rajeshkumarkondapalli/local-llm
+   e9f89b6..a1b2c3d  claude/offline-local-lm-python-cdhy6p -> claude/offline-local-lm-python-cdhy6p
+```
+
+**5. Run it -- try it once with Wi-Fi off to prove it's offline**
+
+```bash
+$ python3 agent.py . "What does this project do and what model does it use?"
+```
+```
+This project is a fully offline, Ollama-free local LLM agent written in
+Python. You run it as `python3 agent.py <folder> <prompt>`: it scans the
+given folder for text files, ranks the most relevant chunks against your
+prompt using keyword overlap, and feeds that context plus your prompt to a
+local GGUF chat model loaded in-process via llama-cpp-python. By default it
+uses HuggingFaceTB/SmolLM2-135M-Instruct-GGUF, a small model vendored
+directly into the repo so no download is needed after cloning.
+```
+
+A second example, pointed at a real project folder with no obviously
+matching files:
+
+```bash
+$ python3 agent.py ~/code/my-api "Where is the auth middleware defined?"
+```
+```
+(no relevant text files found under /Users/rajesh/code/my-api; asking without file context)
+I don't see any file context provided, so I can't point to a specific
+location. Check for a file like middleware/auth.* or similar in your
+project's server/API directory.
+```
+
+That second case shows the "no matching files" fallback path -- it still
+answers, just flags on stderr that it had nothing to ground itself on.
+
+**Note on quality**: SmolLM2-135M is intentionally tiny (135M params) to
+fit the no-LFS vendoring approach -- good for short factual answers, but
+weaker at nuanced reasoning than a larger model. If answers feel too
+shallow, rerun with a bigger model and vendor via Git LFS instead (see
+"Vendoring the model into the repo" above):
+
+```bash
+python3 scripts/download_model.py \
+  --repo Qwen/Qwen2.5-1.5B-Instruct-GGUF \
+  --filename qwen2.5-1.5b-instruct-q4_k_m.gguf
+```
+
 ## Repo layout
 
 ```
