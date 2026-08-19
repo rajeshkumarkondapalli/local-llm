@@ -4,9 +4,12 @@ __pycache__/
 venv/
 *.egg-info/
 
-# Model weights are large binaries fetched separately (see scripts/download_model.py)
-# and should not be committed to git.
+# The default model (models/model.gguf) is intentionally vendored into the
+# repo -- see "Vendoring the model into the repo" in README.md -- so it is
+# NOT ignored here. Ignore any other/larger model files you experiment with
+# locally instead:
 models/*.gguf
+!models/model.gguf
 models/*.bin
 
 .DS_Store

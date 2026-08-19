@@ -37,6 +37,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--max-tokens", type=int, default=512, help="Max tokens to generate")
     parser.add_argument("--threads", type=int, default=None, help="CPU threads to use")
     parser.add_argument(
+        "--gpu-layers",
+        type=int,
+        default=-1,
+        help="Layers to offload to GPU (Metal on Apple Silicon, CUDA/ROCm elsewhere); "
+        "-1 offloads all layers (default), 0 forces CPU-only",
+    )
+    parser.add_argument(
         "--max-context-chars",
         type=int,
         default=6000,
@@ -58,7 +65,13 @@ def main(argv: list[str]) -> int:
     context = build_context(folder, args.prompt, args.max_context_chars)
 
     model_path = resolve_model_path(args.model)
-    llm = load_model(model_path, n_ctx=args.ctx_size, n_threads=args.threads, verbose=args.verbose)
+    llm = load_model(
+        model_path,
+        n_ctx=args.ctx_size,
+        n_threads=args.threads,
+        n_gpu_layers=args.gpu_layers,
+        verbose=args.verbose,
+    )
 
     user_content = args.prompt
     if context:

@@ -18,7 +18,13 @@ def resolve_model_path(cli_value: str | None) -> Path:
     return Path(candidate).expanduser().resolve()
 
 
-def load_model(model_path: Path, n_ctx: int, n_threads: int | None, verbose: bool = False):
+def load_model(
+    model_path: Path,
+    n_ctx: int,
+    n_threads: int | None,
+    n_gpu_layers: int = -1,
+    verbose: bool = False,
+):
     if not model_path.exists():
         print(
             f"error: model file not found at {model_path}\n\n"
@@ -41,9 +47,15 @@ def load_model(model_path: Path, n_ctx: int, n_threads: int | None, verbose: boo
         )
         raise SystemExit(1)
 
+    # n_gpu_layers=-1 offloads every layer to GPU when the build supports it
+    # (Metal on Apple Silicon, CUDA/ROCm elsewhere). The official PyPI wheels
+    # for macOS ship with Metal enabled, so this is what actually makes the
+    # agent fast on an M-series Mac. On a CPU-only build the flag is simply
+    # ignored and inference stays on CPU.
     return Llama(
         model_path=str(model_path),
         n_ctx=n_ctx,
         n_threads=n_threads,
+        n_gpu_layers=n_gpu_layers,
         verbose=verbose,
     )

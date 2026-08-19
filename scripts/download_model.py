@@ -2,10 +2,17 @@
 """One-time helper to fetch a small GGUF chat model for offline use.
 
 This is the *only* step in this project that touches the network. Run it
-once while you have internet access; agent.py itself never makes network
-calls. If you already have a .gguf file (from any source, on a USB stick,
-etc.), you can skip this script entirely -- just copy it to
-models/model.gguf or pass --model /path/to/file.gguf to agent.py.
+once, locally, on a machine with normal internet access -- agent.py itself
+never makes network calls. If you already have a .gguf file (from any
+source, on a USB stick, etc.), you can skip this script entirely -- just
+copy it to models/model.gguf or pass --model /path/to/file.gguf to agent.py.
+
+The default model (SmolLM2-135M-Instruct, ~90MB at Q4_K_M) is small enough
+to commit straight into the git repo without Git LFS -- see the "Vendoring
+the model into the repo" section in README.md. For better answer quality
+at the cost of a larger, LFS-tracked file, pass --repo/--filename for a
+bigger model (e.g. the 1.5B Qwen2.5 default used in earlier revisions of
+this project).
 """
 
 from __future__ import annotations
@@ -14,9 +21,10 @@ import argparse
 import sys
 from pathlib import Path
 
-DEFAULT_REPO = "Qwen/Qwen2.5-1.5B-Instruct-GGUF"
-DEFAULT_FILENAME = "qwen2.5-1.5b-instruct-q4_k_m.gguf"
+DEFAULT_REPO = "HuggingFaceTB/SmolLM2-135M-Instruct-GGUF"
+DEFAULT_FILENAME = "smollm2-135m-instruct-q4_k_m.gguf"
 MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
+GIT_NO_LFS_LIMIT = 100 * 1024 * 1024
 
 
 def main() -> int:
@@ -50,7 +58,6 @@ def main() -> int:
         repo_id=args.repo,
         filename=args.filename,
         local_dir=out_path.parent,
-        local_dir_use_symlinks=False,
     )
 
     downloaded_path = Path(downloaded)
@@ -59,8 +66,28 @@ def main() -> int:
             out_path.unlink()
         downloaded_path.rename(out_path)
 
-    print(f"Model ready at {out_path}")
+    size = out_path.stat().st_size
+    print(f"Model ready at {out_path} ({size / 1024 / 1024:.1f} MB)")
     print("You can now run agent.py fully offline.")
+
+    if size < GIT_NO_LFS_LIMIT:
+        print(
+            "\nThis file is under GitHub's 100MB limit, so you can commit it "
+            "directly to vendor the model into the repo:\n"
+            f"  git add {out_path}\n"
+            '  git commit -m "Vendor local model weights"\n'
+            "  git push"
+        )
+    else:
+        print(
+            "\nThis file is over GitHub's 100MB plain-git limit -- use Git LFS "
+            "to vendor it:\n"
+            '  git lfs install\n'
+            '  git lfs track "*.gguf"\n'
+            f"  git add .gitattributes {out_path}\n"
+            '  git commit -m "Vendor local model weights (LFS)"\n'
+            "  git push"
+        )
     return 0
 
 
