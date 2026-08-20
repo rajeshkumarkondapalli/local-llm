@@ -20,7 +20,7 @@ on:
       filename:
         description: "GGUF filename in the repo"
         required: false
-        default: "SmolLM2-135M-Instruct-Q4_K_M.gguf"
+        default: "SmolLM2-135M-Instruct-Q4_K_S.gguf"
 
 permissions:
   contents: write
@@ -41,7 +41,7 @@ jobs:
       - name: Download model
         env:
           MODEL_REPO: ${{ inputs.repo || 'bartowski/SmolLM2-135M-Instruct-GGUF' }}
-          MODEL_FILENAME: ${{ inputs.filename || 'SmolLM2-135M-Instruct-Q4_K_M.gguf' }}
+          MODEL_FILENAME: ${{ inputs.filename || 'SmolLM2-135M-Instruct-Q4_K_S.gguf' }}
         run: |
           python3 scripts/download_model.py \
             --repo "$MODEL_REPO" \
