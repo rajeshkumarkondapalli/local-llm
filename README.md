@@ -127,6 +127,40 @@ personal Mac). After that commit lands, everyone who clones the repo --
 including on a network that blocks huggingface.co entirely -- has the
 model file already and never needs to fetch anything.
 
+### 2c. Test model (already vendored, for smoke-testing)
+
+`models/test-model.gguf` (~570KB) is committed in this repo already -- no
+download needed. It's a genuine, structurally-valid GGUF file that
+`llama_cpp` loads and runs through the exact same code path as any real
+model (tokenize -> build graph -> sample -> detokenize), but it's a tiny
+2-layer network with random weights, not a trained model, so its answers
+are gibberish. It exists purely to prove the plumbing works without
+needing `models/model.gguf` in place yet:
+
+```bash
+python3 agent.py . "hello" --model models/test-model.gguf --max-tokens 16 --max-context-chars 200
+```
+
+Regenerate it (only needed if you change its architecture) with:
+
+```bash
+pip install -r requirements-dev.txt   # adds gguf
+python3 scripts/make_test_model.py
+```
+
+No network access is used -- `scripts/make_test_model.py` builds the GGUF
+file from scratch with the `gguf` writer library.
+
+Two flags matter when using this fixture: keep `--max-context-chars` low
+(its vocabulary is byte-fallback only, with no real subword merges, so it
+tokenizes at roughly 1 token per character instead of a real tokenizer's
+~4 chars/token, and can blow past `--ctx-size` on a normal-sized folder);
+and if you hit an `Illegal instruction` crash on x86 Linux, that's a CPU
+dispatch bug unrelated to this file (llama.cpp misdetecting AVX512-FP16
+support on some virtualized/cloud CPUs) -- it isn't specific to this
+model and won't occur on Apple Silicon, which uses Metal/ARM kernels
+instead of x86 SIMD entirely.
+
 ### 3. Run it, fully offline
 
 ```bash
@@ -288,11 +322,13 @@ python3 scripts/download_model.py \
 ## Repo layout
 
 ```
-agent.py                  CLI entrypoint
-localllm/context.py       Folder scanning, chunking, keyword-based ranking
-localllm/model.py         Local GGUF model loading (llama-cpp-python)
-scripts/download_model.py One-time model download helper (needs internet)
-models/model.gguf         Vendored model weights (tracked in git; see 2b)
-requirements.txt          Runtime dependency (llama-cpp-python only)
-requirements-dev.txt      Adds huggingface_hub, for the download script
+agent.py                    CLI entrypoint
+localllm/context.py         Folder scanning, chunking, keyword-based ranking
+localllm/model.py           Local GGUF model loading (llama-cpp-python)
+scripts/download_model.py   One-time model download helper (needs internet)
+scripts/make_test_model.py  Generates the synthetic smoke-test model (offline)
+models/model.gguf           Vendored model weights (tracked in git; see 2b)
+models/test-model.gguf      Synthetic smoke-test model (tracked in git; see 2c)
+requirements.txt            Runtime dependency (llama-cpp-python only)
+requirements-dev.txt        Adds huggingface_hub and gguf, for the scripts above
 ```
