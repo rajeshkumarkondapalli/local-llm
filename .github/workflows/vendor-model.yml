@@ -1,6 +1,16 @@
 name: Vendor Model
 
 on:
+  # workflow_dispatch only becomes callable via the API once a workflow
+  # file is on the repo's default branch, which this repo doesn't have
+  # this work on yet. Trigger via push instead, scoped to this file, so
+  # pushing a change to this workflow (even just a trigger touch) is
+  # enough to fire it on this branch.
+  push:
+    branches:
+      - claude/offline-local-lm-python-cdhy6p
+    paths:
+      - ".github/workflows/vendor-model.yml"
   workflow_dispatch:
     inputs:
       repo:
@@ -29,12 +39,17 @@ jobs:
         run: pip install huggingface_hub
 
       - name: Download model
+        env:
+          MODEL_REPO: ${{ inputs.repo || 'HuggingFaceTB/SmolLM2-135M-Instruct-GGUF' }}
+          MODEL_FILENAME: ${{ inputs.filename || 'smollm2-135m-instruct-q4_k_m.gguf' }}
         run: |
           python3 scripts/download_model.py \
-            --repo "${{ inputs.repo }}" \
-            --filename "${{ inputs.filename }}"
+            --repo "$MODEL_REPO" \
+            --filename "$MODEL_FILENAME"
 
       - name: Commit and push
+        env:
+          MODEL_REPO: ${{ inputs.repo || 'HuggingFaceTB/SmolLM2-135M-Instruct-GGUF' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -42,6 +57,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit (model already up to date)."
           else
-            git commit -m "Vendor local model weights (${{ inputs.repo }})"
+            git commit -m "Vendor local model weights ($MODEL_REPO)"
             git push
           fi
