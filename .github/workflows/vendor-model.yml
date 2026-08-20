@@ -1,0 +1,47 @@
+name: Vendor Model
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: "Hugging Face repo id"
+        required: false
+        default: "HuggingFaceTB/SmolLM2-135M-Instruct-GGUF"
+      filename:
+        description: "GGUF filename in the repo"
+        required: false
+        default: "smollm2-135m-instruct-q4_k_m.gguf"
+
+permissions:
+  contents: write
+
+jobs:
+  vendor-model:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install huggingface_hub
+        run: pip install huggingface_hub
+
+      - name: Download model
+        run: |
+          python3 scripts/download_model.py \
+            --repo "${{ inputs.repo }}" \
+            --filename "${{ inputs.filename }}"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add models/model.gguf
+          if git diff --cached --quiet; then
+            echo "No changes to commit (model already up to date)."
+          else
+            git commit -m "Vendor local model weights (${{ inputs.repo }})"
+            git push
+          fi
