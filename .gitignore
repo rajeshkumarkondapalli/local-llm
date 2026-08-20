@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# The default model (models/model.gguf) and the synthetic smoke-test model
+# (models/test-model.gguf, see scripts/make_test_model.py) are intentionally
+# vendored into the repo -- see README.md -- so they are NOT ignored here.
+# Ignore any other/larger model files you experiment with locally instead:
+models/*.gguf
+!models/model.gguf
+!models/test-model.gguf
+models/*.bin
+
+.DS_Store
