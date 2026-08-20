@@ -16,11 +16,11 @@ on:
       repo:
         description: "Hugging Face repo id"
         required: false
-        default: "HuggingFaceTB/SmolLM2-135M-Instruct-GGUF"
+        default: "bartowski/SmolLM2-135M-Instruct-GGUF"
       filename:
         description: "GGUF filename in the repo"
         required: false
-        default: "smollm2-135m-instruct-q4_k_m.gguf"
+        default: "SmolLM2-135M-Instruct-Q4_K_M.gguf"
 
 permissions:
   contents: write
@@ -38,14 +38,10 @@ jobs:
       - name: Install huggingface_hub
         run: pip install huggingface_hub
 
-      - name: List files in bartowski/SmolLM2-135M-Instruct-GGUF (debug)
-        run: |
-          curl -s "https://huggingface.co/api/models/bartowski/SmolLM2-135M-Instruct-GGUF" | python3 -m json.tool
-
       - name: Download model
         env:
-          MODEL_REPO: ${{ inputs.repo || 'HuggingFaceTB/SmolLM2-135M-Instruct-GGUF' }}
-          MODEL_FILENAME: ${{ inputs.filename || 'smollm2-135m-instruct-q4_k_m.gguf' }}
+          MODEL_REPO: ${{ inputs.repo || 'bartowski/SmolLM2-135M-Instruct-GGUF' }}
+          MODEL_FILENAME: ${{ inputs.filename || 'SmolLM2-135M-Instruct-Q4_K_M.gguf' }}
         run: |
           python3 scripts/download_model.py \
             --repo "$MODEL_REPO" \
@@ -53,7 +49,7 @@ jobs:
 
       - name: Commit and push
         env:
-          MODEL_REPO: ${{ inputs.repo || 'HuggingFaceTB/SmolLM2-135M-Instruct-GGUF' }}
+          MODEL_REPO: ${{ inputs.repo || 'bartowski/SmolLM2-135M-Instruct-GGUF' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

@@ -21,8 +21,8 @@ import argparse
 import sys
 from pathlib import Path
 
-DEFAULT_REPO = "HuggingFaceTB/SmolLM2-135M-Instruct-GGUF"
-DEFAULT_FILENAME = "smollm2-135m-instruct-q4_k_m.gguf"
+DEFAULT_REPO = "bartowski/SmolLM2-135M-Instruct-GGUF"
+DEFAULT_FILENAME = "SmolLM2-135M-Instruct-Q4_K_M.gguf"
 MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
 GIT_NO_LFS_LIMIT = 100 * 1024 * 1024
 

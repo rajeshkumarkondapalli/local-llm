@@ -63,7 +63,7 @@ python3 scripts/download_model.py
 ```
 
 This fetches the default model
-(`HuggingFaceTB/SmolLM2-135M-Instruct-GGUF`, Q4_K_M, ~90MB) to
+(`bartowski/SmolLM2-135M-Instruct-GGUF`, Q4_K_M, ~90MB) to
 `models/model.gguf`. It's intentionally tiny so it fits under GitHub's
 100MB no-LFS limit and can be committed straight into the repo (step below).
 For noticeably better answer quality at the cost of a much larger,
@@ -245,8 +245,8 @@ $ pip install -r requirements-dev.txt
 $ python3 scripts/download_model.py
 ```
 ```
-Downloading smollm2-135m-instruct-q4_k_m.gguf from HuggingFaceTB/SmolLM2-135M-Instruct-GGUF ...
-smollm2-135m-instruct-q4_k_m.gguf: 100%|████████████████████████| 91.2M/91.2M [00:04<00:00, 21.3MB/s]
+Downloading SmolLM2-135M-Instruct-Q4_K_M.gguf from bartowski/SmolLM2-135M-Instruct-GGUF ...
+SmolLM2-135M-Instruct-Q4_K_M.gguf: 100%|████████████████████████| 91.2M/91.2M [00:04<00:00, 21.3MB/s]
 Model ready at /Users/rajesh/local-llm/models/model.gguf (91.2 MB)
 
 This file is under GitHub's 100MB limit, so you can commit it directly to vendor the model into the repo:
@@ -287,7 +287,7 @@ Python. You run it as `python3 agent.py <folder> <prompt>`: it scans the
 given folder for text files, ranks the most relevant chunks against your
 prompt using keyword overlap, and feeds that context plus your prompt to a
 local GGUF chat model loaded in-process via llama-cpp-python. By default it
-uses HuggingFaceTB/SmolLM2-135M-Instruct-GGUF, a small model vendored
+uses bartowski/SmolLM2-135M-Instruct-GGUF, a small model vendored
 directly into the repo so no download is needed after cloning.
 ```
 
