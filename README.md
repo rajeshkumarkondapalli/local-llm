@@ -57,7 +57,9 @@ GitHub's 100MB no-LFS limit (the Q4_K_M quant of this same model comes in
 at 100.6MB, just over the limit, which is why this repo uses Q4_K_S
 instead), so it's a plain committed file, no Git LFS required.
 
-Want a different or better model instead? Use the helper script:
+Want a different or better model instead?
+
+Option A -- use the helper script:
 
 ```bash
 pip install -r requirements-dev.txt   # adds huggingface_hub
@@ -134,8 +136,8 @@ download needed. It's a genuine, structurally-valid GGUF file that
 `llama_cpp` loads and runs through the exact same code path as any real
 model (tokenize -> build graph -> sample -> detokenize), but it's a tiny
 2-layer network with random weights, not a trained model, so its answers
-are gibberish. It exists purely to prove the plumbing works without
-needing `models/model.gguf` in place yet:
+are gibberish. It exists purely to prove the plumbing works end to end
+without depending on any real trained model:
 
 ```bash
 python3 agent.py . "hello" --model models/test-model.gguf --max-tokens 16 --max-context-chars 200
@@ -193,9 +195,11 @@ python3 agent.py <folder> <prompt> [options]
 
 ## Example walkthrough
 
-An end-to-end run on a Mac, from clone to a fully offline query. Output
-shown is representative of what each tool actually prints, not a captured
-transcript -- exact byte counts, hashes, and timings will differ for you.
+An end-to-end run on a Mac, from clone to a fully offline query. Steps 1-2
+show output that's representative of what each tool actually prints, not a
+captured transcript. Steps 3-5 are real, verified transcripts -- captured
+producing and running the actual `models/model.gguf` vendored in this
+repo -- and are labeled as such where they appear.
 
 **1. Clone and enter the repo**
 
@@ -238,12 +242,11 @@ Successfully installed diskcache-5.6.3 jinja2-3.1.5 llama-cpp-python-0.3.35 nump
 The `macosx_14_0_arm64` wheel is the important part -- that's the prebuilt
 Metal-enabled binary for Apple Silicon; no compiling needed.
 
-**3. Model is already vendored -- steps 3-4 below are only needed if you
-swap in a different model**
+**3. Model is already vendored (steps 3-4 are for reference only)**
 
 `models/model.gguf` is already committed in this repo, so a plain clone
 has everything needed. This is what producing and vendoring it looked
-like (shown for reference, e.g. if you later swap in a different model):
+like -- useful if you swap in a different model later:
 
 ```bash
 $ pip install -r requirements-dev.txt
@@ -351,7 +354,7 @@ localllm/model.py                 Local GGUF model loading (llama-cpp-python)
 scripts/download_model.py         Model download helper (needs internet)
 scripts/make_test_model.py        Generates the synthetic smoke-test model (offline)
 .github/workflows/vendor-model.yml  Re-fetches/vendors a model via a GitHub-hosted runner
-models/model.gguf                 Vendored model weights (tracked in git; see 2b)
+models/model.gguf                 Vendored model weights (tracked in git; see section 2)
 models/test-model.gguf            Synthetic smoke-test model (tracked in git; see 2c)
 requirements.txt                  Runtime dependency (llama-cpp-python only)
 requirements-dev.txt              Adds huggingface_hub and gguf, for the scripts above
