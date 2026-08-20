@@ -38,6 +38,15 @@ jobs:
       - name: Install huggingface_hub
         run: pip install huggingface_hub
 
+      - name: Search Hugging Face for candidate repos (debug)
+        run: |
+          echo "== search: SmolLM2 GGUF, author HuggingFaceTB =="
+          curl -s "https://huggingface.co/api/models?search=SmolLM2&author=HuggingFaceTB" | head -c 4000
+          echo
+          echo "== search: SmolLM2-135M-Instruct GGUF (any author) =="
+          curl -s "https://huggingface.co/api/models?search=SmolLM2-135M-Instruct-GGUF" | head -c 4000
+          echo
+
       - name: Download model
         env:
           MODEL_REPO: ${{ inputs.repo || 'HuggingFaceTB/SmolLM2-135M-Instruct-GGUF' }}
